@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+require('dotenv').config();
 
 const { exec } = require('child_process');
 
@@ -9,7 +10,7 @@ const routes = [
   { name: 'portfolio', repo: '/var/www/evanmoses.com/html/portfolio', secret: process.env.PORTFOLIO_SECRET },
   { name: 'realtimepre', repo: '/var/www/evanmoses.com/html/realtimepre', secret: process.env.REALTIME_SECRET },
   { name: 'bogglesolutionfinder', repo: '/var/www/evanmoses.com/html/bogglesolutionfinder', secret: process.env.BOGGLE_SECRET },
-  { name: 'strategytoolkit', repo: 'var/www/evanmoses.com/html/strategytoolkit', secret: process.env.TOOLKIT_SECRET },
+  { name: 'strategytoolkit', repo: '/var/www/evanmoses.com/html/strategytoolkit', secret: process.env.TOOLKIT_SECRET },
 ];
 
 app.use(express.json()); // Parse json bodies
@@ -17,7 +18,7 @@ app.use(express.json()); // Parse json bodies
 app.post('/redeploy/:path', validateSecret, (req, res) => {
   const { path } = req.params;
   const redeployRoute = routes.filter((el) => el.name === path);
-  exec(`cd ${redeployRoute.repo} && git pull`, (err, stdout, stderr) => {
+  exec(`cd ${redeployRoute[0].repo} && git pull`, (err, stdout, stderr) => {
     if (err) {
       // some err occurred
       console.error(err);
@@ -45,7 +46,7 @@ function validateSecret(req, res, next) {
   }
   const sig = `sha1=${
     crypto
-      .createHmac('sha1', redeployRoute.secret)
+      .createHmac('sha1', redeployRoute[0].secret)
       .update(payload)
       .digest('hex')}`;
   if (req.headers['x-hub-signature'] == sig) {
