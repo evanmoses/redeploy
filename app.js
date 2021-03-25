@@ -13,49 +13,45 @@ const routes = [
 
 app.use(express.json()); // Parse json bodies
 
-app.get('/redeploy', (req, res) => {
-  res.send('basic route is working');
+app.post('redeploy/:path', validateSecret, (req, res) => {
+  const { path } = req.params;
+  const redeployRoute = routes.filter((el) => el.name === path);
+  exec(`cd ${redeployRoute.repo} && git pull`, (err, stdout, stderr) => {
+    if (err) {
+      // some err occurred
+      console.error(err);
+      res.status(403).send(err);
+    } else {
+      // the *entire* stdout and stderr (buffered)
+      console.log(`stdout: ${stdout}`);
+      console.log(`stderr: ${stderr}`);
+      res.status(200).send(`Auto deploy completed ${stdout} ${stderr}`);
+    }
+  });
 });
 
-// app.post('/:path', validateSecret, (req, res) => {
-//   const { path } = req.params;
-//   const redeployRoute = routes.filter((el) => el.name === path);
-//   exec(`cd ${redeployRoute.repo} && git pull`, (err, stdout, stderr) => {
-//     if (err) {
-//       // some err occurred
-//       console.error(err);
-//       res.status(403).send(err);
-//     } else {
-//       // the *entire* stdout and stderr (buffered)
-//       console.log(`stdout: ${stdout}`);
-//       console.log(`stderr: ${stderr}`);
-//       res.status(200).send(`Auto deploy completed ${stdout} ${stderr}`);
-//     }
-//   });
-// });
-//
-// function validateSecret(req, res, next) {
-// /**
-//  * Passing an argument to next() in middleware
-//  * throws an error to the error handler automatically
-//  */
-//   const { path } = req.params;
-//   const redeployRoute = routes.filter((el) => el.name === path);
-//
-//   const payload = JSON.stringify(req.body);
-//   if (!payload) {
-//     return next('Request body empty');
-//   }
-//   const sig = `sha1=${
-//     crypto
-//       .createHmac('sha1', redeployRoute.secret)
-//       .update(payload)
-//       .digest('hex')}`;
-//   if (req.headers['x-hub-signature'] == sig) {
-//     return next();
-//   }
-//   return next('Signatures did not match');
-// }
+function validateSecret(req, res, next) {
+/**
+ * Passing an argument to next() in middleware
+ * throws an error to the error handler automatically
+ */
+  const { path } = req.params;
+  const redeployRoute = routes.filter((el) => el.name === path);
+
+  const payload = JSON.stringify(req.body);
+  if (!payload) {
+    return next('Request body empty');
+  }
+  const sig = `sha1=${
+    crypto
+      .createHmac('sha1', redeployRoute.secret)
+      .update(payload)
+      .digest('hex')}`;
+  if (req.headers['x-hub-signature'] == sig) {
+    return next();
+  }
+  return next('Signatures did not match');
+}
 
 let port = process.env.PORT;
 // port = ''
