@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 
 const { exec } = require('child_process');
 
@@ -13,7 +14,7 @@ const routes = [
 
 app.use(express.json()); // Parse json bodies
 
-app.post('redeploy/:path', validateSecret, (req, res) => {
+app.post('/redeploy/:path', validateSecret, (req, res) => {
   const { path } = req.params;
   const redeployRoute = routes.filter((el) => el.name === path);
   exec(`cd ${redeployRoute.repo} && git pull`, (err, stdout, stderr) => {
