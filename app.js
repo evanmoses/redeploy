@@ -13,7 +13,7 @@ const routes = [
 
 app.use(express.json()); // Parse json bodies
 
-app.get('/', (req, res) => {
+app.get('/redeploy', (req, res) => {
   res.send('basic route is working');
 });
 
