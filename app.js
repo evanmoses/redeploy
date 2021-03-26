@@ -40,6 +40,8 @@ function validateSecret(req, res, next) {
   const { path } = req.params;
   const redeployRoute = routes.filter((el) => el.name === path);
 
+  console.log(redeployRoute);
+
   const payload = JSON.stringify(req.body);
   if (!payload) {
     return next('Request body empty');
