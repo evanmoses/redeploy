@@ -18,7 +18,7 @@ app.use(express.json()); // Parse json bodies
 app.post('/redeploy/:path', validateSecret, (req, res) => {
   const { path } = req.params;
   const redeployRoute = routes.filter((el) => el.name === path);
-  exec(`cd ${redeployRoute[0].repo} && git pull && npm install && npm run build`, (err, stdout, stderr) => {
+  exec(`cd ${redeployRoute[0].repo} && git pull`, (err, stdout, stderr) => {
     if (err) {
       // some err occurred
       console.error(err);
